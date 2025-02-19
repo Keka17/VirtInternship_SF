@@ -1,7 +1,6 @@
 import os
-from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey
-from sqlalchemy.orm import declarative_base, sessionmaker, Session
-
+from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey, Float
+from sqlalchemy.orm import declarative_base, sessionmaker
 """ORM - для представления таблиц в виде классов,
 а с БД работать через объекты"""
 
@@ -26,12 +25,22 @@ SessionLocal = sessionmaker(bind=engine)
 Base = declarative_base()
 
 
+# Модель координат
+class Coords(Base):
+    __tablename__ = 'coords'
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
+    height = Column(Integer, nullable=False)
+
+
 # Модель перевалов
 class PerevalAdded(Base):
     __tablename__ = 'pereval_added'
 
-    id = Column(Integer, primary_key=True, index=True)
-    beauty_title = Column(String(200))
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    beautytitle = Column(String(200))
     title = Column(String(200))
     other_titles = Column(String(200))
     connect = Column(Text, nullable=True)
@@ -45,11 +54,23 @@ class Database:
     def __init__(self):
         self.session = SessionLocal()
 
-    def add_pereval(self, beauty_title, title, other_titles,
-                    connect, add_time, coord_id: int):
-        """Логика добавление нового перевала в БД"""
+    def add_coords(self, latitude, longitude, height):
+        """Добавление координат в БД и возврат по id"""
+        new_coords = Coords(latitude=latitude,
+                            longitude=longitude, height=height)
+
+        self.session.add(new_coords)
+        self.session.commit()
+        return new_coords.id
+
+    def add_pereval(self, beautytitle, title, other_titles,
+                        connect, add_time, latitude, longitude, height):
+        """Добавление нового перевала в БД """
+
+        coord_id = self.add_coords(latitude, longitude, height)
+
         new_pereval = PerevalAdded(
-            beauty_title=beauty_title,
+            beautytitle=beautytitle,
             title=title,
             other_titles=other_titles,
             connect=connect,

@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
 """ORM - для представления таблиц в виде классов,
@@ -31,7 +31,12 @@ class PerevalAdded(Base):
     __tablename__ = 'pereval_added'
 
     id = Column(Integer, primary_key=True, index=True)
-    coord_id = Column(Integer, ForeignKey('coords_id'), nullable=False)
+    beauty_title = Column(String(200))
+    title = Column(String(200))
+    other_titles = Column(String(200))
+    connect = Column(Text, nullable=True)
+    add_time = Column(String, nullable=False)
+    coord_id = Column(Integer, ForeignKey('coords.id'), nullable=False)
     status = Column(String, default='new')
 
 
@@ -40,13 +45,22 @@ class Database:
     def __init__(self):
         self.session = SessionLocal()
 
-        def add_pereval(self, coord_id: int):
-            """Логика добавление нового перевала в БД"""
-            new_pereval = PerevalAdded(coord_id=coord_id)
-            self.session.add(new_pereval)
-            self.session.commit()
-            return new_pereval.id
+    def add_pereval(self, beauty_title, title, other_titles,
+                    connect, add_time, coord_id: int):
+        """Логика добавление нового перевала в БД"""
+        new_pereval = PerevalAdded(
+            beauty_title=beauty_title,
+            title=title,
+            other_titles=other_titles,
+            connect=connect,
+            add_time=add_time,
+            coord_id=coord_id,
+            status='new')
 
-        def close(self):
-            """Закрытие сесси после создания новой записи"""
-            self.session.close()
+        self.session.add(new_pereval)
+        self.session.commit()
+        return new_pereval.id
+
+    def close(self):
+        """Закрытие сесси после создания новой записи"""
+        self.session.close()

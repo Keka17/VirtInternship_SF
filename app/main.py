@@ -32,6 +32,12 @@ class SubmitData(BaseModel):
     longitude: float = Field(..., ge=-180, le=180, description='Долгота в градусах')
     height: int = Field(..., ge=0, description='Высота в метрах над уровнем моря')
 
+    # Поля сезонов
+    winter: str = Field(..., min_length=0, max_length=2, description='Полукатегория сложности перевала зимой')
+    summer: str = Field(..., min_length=0, max_length=2, description='Полукатегория сложности перевала летом')
+    autumn: str = Field(..., min_length=0, max_length=2, description='Полукатегория сложности перевала осенью')
+    spring: str = Field(..., min_length=0, max_length=2, description='Полукатегория сложности перевала весной')
+
     @field_validator('add_time', mode='before')
     def parse_add_time(cls, value):
         """Валидатор для обработки формата даты (ISO 8601)"""
@@ -64,7 +70,11 @@ async def submit_data(data: SubmitData, db: Database = Depends(get_db)):
             add_time=data.add_time.isoformat(),
             latitude=data.latitude,
             longitude=data.longitude,
-            height=data.height
+            height=data.height,
+            winter=data.winter,
+            summer=data.summer,
+            autumn=data.autumn,
+            spring=data.spring
         )
 
         return {'status': 'success', 'pereval_id': pereval_id}  # JSON-ответ

@@ -48,6 +48,12 @@ class PerevalAdded(Base):
     coord_id = Column(Integer, ForeignKey('coords.id'), nullable=False)
     status = Column(String, default='new')
 
+    # Столбцы для уровней сложности по сезонам
+    winter = Column(String(2), nullable=True)
+    summer = Column(String(2), nullable=True)
+    autumn = Column(String(2), nullable=True)
+    spring = Column(String(2), nullable=True)
+
 
 # Создание таблицы в БД
 Base.metadata.create_all(engine)
@@ -68,7 +74,9 @@ class Database:
         return new_coords.id
 
     def add_pereval(self, beautytitle, title, other_titles,
-                        connect, add_time, latitude, longitude, height):
+                        connect, add_time, latitude, longitude, height,
+                        winter, summer, autumn, spring
+                    ):
         """Добавление нового перевала в БД """
 
         coord_id = self.add_coords(latitude, longitude, height)
@@ -80,7 +88,12 @@ class Database:
             connect=connect,
             add_time=add_time,
             coord_id=coord_id,
-            status='new')
+            status='new',
+            winter=winter,
+            summer=summer,
+            autumn=autumn,
+            spring=spring
+        )
 
         self.session.add(new_pereval)
         self.session.commit()

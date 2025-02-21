@@ -7,13 +7,13 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 # Получение данных из переменных окружения
 DB_HOST = os.getenv('FSTR_DB_HOST', 'localhost')
 DB_PORT = os.getenv('FSTR_DB_PORT', '5432')
-DB_USER = os.getenv('FSTR_DB_LOGIN', 'postgres')
+DB_LOGIN = os.getenv('FSTR_DB_LOGIN', 'postgres')
 DB_PASS = os.getenv('FSTR_DB_PASS', 'password')
 
 DB_NAME = os.getenv('FSTR_DB_NAME', 'pereval')  # Имя нашей ДБ
 
 # Строка подключения к БД
-DATABASE_URL = f'postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+DATABASE_URL = f'postgresql://{DB_LOGIN}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
 
 # Создание движка для работы с БД
 engine = create_engine(DATABASE_URL)

@@ -118,3 +118,39 @@ async def get_pereval(pereval_id: int, db: Database = Depends(get_db)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'Ошибка сервера: {str(e)}')
+
+
+@app.patch('/submitData/{id}')
+async def update_pereval(id: int, data: SubmitData, db: Database = Depends(get_db)):
+    """Редактирование информации о перевале со статусом new"""
+    pereval = db.session.query(PerevalAdded).filter(PerevalAdded.id == id).first()
+
+    if not pereval:
+        return {'state': 0, 'message': 'Перевал не найден'}
+
+    if pereval.status != 'new':
+        return {'state': 0, 'message': 'Редактирование невозможно'}
+
+    try:
+        # Обновляем только разрешенные поля
+        pereval.beautytitle = data.beautytitle
+        pereval.title = data.title
+        pereval.other_titles = '; '.join(data.other_titles)
+        pereval.connect = data.connect
+        pereval.add_time = data.add_time.isoformat()
+        pereval.winter = data.winter
+        pereval.summer = data.summer
+        pereval.autumn = data.autumn
+        pereval.spring = data.spring
+
+        # Обновляем координаты
+        coords = db.session.query(Coords).filter(Coords.id == pereval.coord_id).first()
+        coords.latitude = data.latitude
+        coords.longitude = data.longitude
+        coords.height = data.height
+
+        db.session.commit()
+        return {'state': 1, 'message': 'Данные успешно обновлены'}
+
+    except Exception as e:
+        return {'state': 0, 'message': f'Ошибка при обновлении данных: {str(e)}'}

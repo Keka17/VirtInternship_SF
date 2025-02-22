@@ -7,7 +7,7 @@ from fastapi.params import Depends
 from pydantic import BaseModel, Field, conlist, field_validator
 import pendulum
 
-from database import Database
+from database import Database, PerevalAdded, Coords
 
 app = FastAPI()
 
@@ -78,6 +78,43 @@ async def submit_data(data: SubmitData, db: Database = Depends(get_db)):
         )
 
         return {'status': 'success', 'pereval_id': pereval_id}  # JSON-ответ
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'Ошибка сервера: {str(e)}')
+
+
+@app.get('/submitData/{pereval_id}')
+async def get_pereval(pereval_id: int, db: Database = Depends(get_db)):
+    """Получение информации о перевале по id"""
+    try:
+        pereval = db.session.query(PerevalAdded).filter(PerevalAdded.id == pereval_id).first()
+
+        if not pereval:
+            raise HTTPException(status_code=404, detail='Перевал не найден')
+
+        coords = db.session.query(Coords).filter(Coords.id == pereval.coord_id).first()
+
+        # Ответ в JSON-формате
+        return {
+            'id': pereval.id,
+            'beautytitle': pereval.beautytitle,
+            'title': pereval.title,
+            'other_titles': pereval.other_titles,
+            'connect': pereval.connect,
+            'add_time': pereval.add_time,
+            'status': pereval.status,
+            'coords': {
+                "latitude": coords.latitude,
+                "longitude": coords.longitude,
+                "height": coords.height
+            },
+            'level': {
+                'winter': pereval.winter,
+                'summer': pereval.summer,
+                'autumn': pereval.autumn,
+                'spring': pereval.spring
+            }
+        }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'Ошибка сервера: {str(e)}')

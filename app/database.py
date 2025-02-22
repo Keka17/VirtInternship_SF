@@ -1,6 +1,9 @@
 import os
+
 from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey, Float
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker, relationship
+
+
 """ORM - для представления таблиц в виде классов,
 а с БД работать через объекты"""
 
@@ -35,6 +38,20 @@ class Coords(Base):
     height = Column(Integer, nullable=False)
 
 
+# Модель пользователя
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    fam = Column(String, nullable=False)
+    name = Column(String, nullable=False)
+    otc = Column(String, nullable=True)
+    phone = Column(String(12), nullable=False, unique=True)
+    email = Column(String, nullable=False, unique=True)
+
+    perevals = relationship('PerevalAdded', back_populates='user')
+
+
 # Модель перевалов
 class PerevalAdded(Base):
     __tablename__ = 'pereval_added'
@@ -53,6 +70,9 @@ class PerevalAdded(Base):
     summer = Column(String(2), nullable=True)
     autumn = Column(String(2), nullable=True)
     spring = Column(String(2), nullable=True)
+
+    user_id = Column(Integer, ForeignKey('users.id'))  # Связь с users
+    user = relationship('User', back_populates='perevals')  # Добавляем реляцию
 
 
 # Создание таблицы в БД

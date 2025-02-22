@@ -7,7 +7,7 @@ from fastapi.params import Depends
 from pydantic import BaseModel, Field, conlist, field_validator
 import pendulum
 
-from database import Database, PerevalAdded, Coords
+from database import Database, PerevalAdded, Coords, User
 
 app = FastAPI()
 
@@ -93,10 +93,12 @@ async def get_pereval(pereval_id: int, db: Database = Depends(get_db)):
             raise HTTPException(status_code=404, detail='Перевал не найден')
 
         coords = db.session.query(Coords).filter(Coords.id == pereval.coord_id).first()
+        user = pereval.user
 
         # Ответ в JSON-формате
         return {
             'id': pereval.id,
+            'author': user.email,
             'beautytitle': pereval.beautytitle,
             'title': pereval.title,
             'other_titles': pereval.other_titles,
@@ -154,3 +156,16 @@ async def update_pereval(id: int, data: SubmitData, db: Database = Depends(get_d
 
     except Exception as e:
         return {'state': 0, 'message': f'Ошибка при обновлении данных: {str(e)}'}
+
+@app.get('/submitData/')
+async def get_perevals_by_email(user__email: str, db: Database = Depends(get_db)):
+    """Просмотр всех перевалов, опубликованных пользователем с определенным email-ом"""
+    user__email = user__email.strip()  # Удаление пробелов
+    user = db.session.query(User).filter(User.email.ilike(user__email)).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail='Пользователь с таким email-ом не найден')
+
+    perevals = db.session.query(PerevalAdded).filter(PerevalAdded.user_id == user.id).all()
+
+    return {'Перевалы пользователя': user__email, 'data': perevals}

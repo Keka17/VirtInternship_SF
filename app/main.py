@@ -7,7 +7,7 @@ from fastapi.params import Depends
 from pydantic import BaseModel, Field, conlist, field_validator
 import pendulum
 
-from database import Database
+from database import Database, PerevalAdded, Coords, User
 
 app = FastAPI()
 
@@ -81,3 +81,91 @@ async def submit_data(data: SubmitData, db: Database = Depends(get_db)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'Ошибка сервера: {str(e)}')
+
+
+@app.get('/submitData/{pereval_id}')
+async def get_pereval(pereval_id: int, db: Database = Depends(get_db)):
+    """Получение информации о перевале по id"""
+    try:
+        pereval = db.session.query(PerevalAdded).filter(PerevalAdded.id == pereval_id).first()
+
+        if not pereval:
+            raise HTTPException(status_code=404, detail='Перевал не найден')
+
+        coords = db.session.query(Coords).filter(Coords.id == pereval.coord_id).first()
+        user = pereval.user
+
+        # Ответ в JSON-формате
+        return {
+            'id': pereval.id,
+            'author': user.email,
+            'beautytitle': pereval.beautytitle,
+            'title': pereval.title,
+            'other_titles': pereval.other_titles,
+            'connect': pereval.connect,
+            'add_time': pereval.add_time,
+            'status': pereval.status,
+            'coords': {
+                "latitude": coords.latitude,
+                "longitude": coords.longitude,
+                "height": coords.height
+            },
+            'level': {
+                'winter': pereval.winter,
+                'summer': pereval.summer,
+                'autumn': pereval.autumn,
+                'spring': pereval.spring
+            }
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'Ошибка сервера: {str(e)}')
+
+
+@app.patch('/submitData/{id}')
+async def update_pereval(id: int, data: SubmitData, db: Database = Depends(get_db)):
+    """Редактирование информации о перевале со статусом new"""
+    pereval = db.session.query(PerevalAdded).filter(PerevalAdded.id == id).first()
+
+    if not pereval:
+        return {'state': 0, 'message': 'Перевал не найден'}
+
+    if pereval.status != 'new':
+        return {'state': 0, 'message': 'Редактирование невозможно'}
+
+    try:
+        # Обновляем только разрешенные поля
+        pereval.beautytitle = data.beautytitle
+        pereval.title = data.title
+        pereval.other_titles = '; '.join(data.other_titles)
+        pereval.connect = data.connect
+        pereval.add_time = data.add_time.isoformat()
+        pereval.winter = data.winter
+        pereval.summer = data.summer
+        pereval.autumn = data.autumn
+        pereval.spring = data.spring
+
+        # Обновляем координаты
+        coords = db.session.query(Coords).filter(Coords.id == pereval.coord_id).first()
+        coords.latitude = data.latitude
+        coords.longitude = data.longitude
+        coords.height = data.height
+
+        db.session.commit()
+        return {'state': 1, 'message': 'Данные успешно обновлены'}
+
+    except Exception as e:
+        return {'state': 0, 'message': f'Ошибка при обновлении данных: {str(e)}'}
+
+@app.get('/submitData/')
+async def get_perevals_by_email(user__email: str, db: Database = Depends(get_db)):
+    """Просмотр всех перевалов, опубликованных пользователем с определенным email-ом"""
+    user__email = user__email.strip()  # Удаление пробелов
+    user = db.session.query(User).filter(User.email.ilike(user__email)).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail='Пользователь с таким email-ом не найден')
+
+    perevals = db.session.query(PerevalAdded).filter(PerevalAdded.user_id == user.id).all()
+
+    return {'Перевалы пользователя': user__email, 'data': perevals}

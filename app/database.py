@@ -3,9 +3,12 @@ import os
 from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey, Float
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
+from dotenv import load_dotenv
 
 """ORM - для представления таблиц в виде классов,
 а с БД работать через объекты"""
+
+load_dotenv()  # Загружаем переменные из .env
 
 # Получение данных из переменных окружения
 DB_HOST = os.getenv('FSTR_DB_HOST', 'localhost')
@@ -14,13 +17,8 @@ DB_LOGIN = os.getenv('FSTR_DB_LOGIN', 'postgres')
 DB_PASS = os.getenv('FSTR_DB_PASS', 'password')
 
 DB_NAME = os.getenv('FSTR_DB_NAME', 'pereval')  # Имя нашей ДБ
-
 # Строка подключения к БД с использованием переменных окружения
-# DATABASE_URL = f'postgresql://{DB_LOGIN}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
-
-# Проверка на своей ДБ
-DATABASE_URL = f'postgresql://{DB_LOGIN}:1709@{DB_HOST}:{DB_PORT}/pereval'
-
+DATABASE_URL = f'postgresql://{DB_LOGIN}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
 
 # Создание движка для работы с БД
 engine = create_engine(DATABASE_URL)

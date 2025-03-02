@@ -9,3 +9,6 @@
  p.s. test_database.py - побочный файл, проверяла до создания реста
   
 Работоспособность проверяла в Postman, скрины приложены
+
+Спринт 2
+• Добавлены требуемые методы GET /submitData/<id, PATCH /submitData/<id> и GET /submitData/?user__email=<email> + скрины

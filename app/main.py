@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from fastapi import FastAPI
 from fastapi.params import Depends
 
-from pydantic import BaseModel, Field, conlist, field_validator
+from pydantic import BaseModel, Field, conlist, field_validator, EmailStr
 import pendulum
 
 from database import Database, PerevalAdded, Coords, User
@@ -38,6 +38,13 @@ class SubmitData(BaseModel):
     autumn: str = Field(..., min_length=0, max_length=2, description='Полукатегория сложности перевала осенью')
     spring: str = Field(..., min_length=0, max_length=2, description='Полукатегория сложности перевала весной')
 
+    # Данные об авторе
+    fam: str = Field(..., min_length=1, description='Фамилия автора')
+    name: str = Field(..., min_length=1, description='Имя автора')
+    otc: str = Field(default='', description='Отчество автора')
+    phone: str = Field(..., min_length=10, max_length=12, description='Номер телефона')
+    email: EmailStr
+
     @field_validator('add_time', mode='before')
     def parse_add_time(cls, value):
         """Валидатор для обработки формата даты (ISO 8601)"""
@@ -45,7 +52,7 @@ class SubmitData(BaseModel):
             try:
                 return pendulum.parse(value)  # Автоопределение формата (ISO 8601, RFC 3339)
             except pendulum.parsing.exceptions.ParserError:
-                raise ValueError('add_time должен быть в формате ISO 8601 (YYYY-MM-DDTHH:MM:SSZ) или datetime объект')
+                raise ValueError('add_time должен быть в формате ISO 8601 (YYYY-MM-DDTHH:MM:SSZ) или datetime-объект')
         return value
 
 
@@ -62,12 +69,22 @@ def get_db():
 async def submit_data(data: SubmitData, db: Database = Depends(get_db)):
     """Обработчик POST-запроса для добавления нового перевала"""
     try:
+        # Получаем или создаем пользователя
+        user_id = db.get_or_create_user(
+            fam=data.fam,
+            name=data.name,
+            otc=data.otc,
+            phone=data.phone,
+            email=data.email
+        )
+
         pereval_id = db.add_pereval(
             beautytitle=data.beautytitle,
             title=data.title,
             other_titles='; '.join(data.other_titles),
             connect=data.connect,
             add_time=data.add_time.isoformat(),
+            user_id=user_id,  # Передаем ID пользователя
             latitude=data.latitude,
             longitude=data.longitude,
             height=data.height,
@@ -156,6 +173,7 @@ async def update_pereval(id: int, data: SubmitData, db: Database = Depends(get_d
 
     except Exception as e:
         return {'state': 0, 'message': f'Ошибка при обновлении данных: {str(e)}'}
+
 
 @app.get('/submitData/')
 async def get_perevals_by_email(user__email: str, db: Database = Depends(get_db)):

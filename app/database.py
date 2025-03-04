@@ -1,5 +1,7 @@
 import os
 
+import pendulum
+from pendulum import datetime
 from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey, Float
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
@@ -95,20 +97,39 @@ class Database:
         self.session.commit()
         return new_coords.id
 
+    def get_or_create_user(self, fam, name, otc, phone, email):
+        """Получение пользователя или создание нового"""
+        user = self.session.query(User).filter(User.email == email).first()
+
+        if not user:
+            user = User(fam=fam, name=name, otc=otc, phone=phone, email=email)
+            self.session.add(user)
+            self.session.commit()
+            self.session.refresh(user)
+
+        return user.id  # Возвращаем ID пользователя
+
     def add_pereval(self, beautytitle, title, other_titles,
-                        connect, add_time, latitude, longitude, height,
-                        winter, summer, autumn, spring
+                        connect,  latitude, longitude, height,
+                        winter, summer, autumn, spring, user_id, add_time=None
                     ):
         """Добавление нового перевала в БД """
 
+        # Если add_time не передано, используем текущее время
+        if add_time is None:
+            add_time = pendulum.now()  # Текущее время в формате ISO 8601
+
+        # Добавляем координаты
         coord_id = self.add_coords(latitude, longitude, height)
 
+        # Создаем новый перевал
         new_pereval = PerevalAdded(
             beautytitle=beautytitle,
             title=title,
             other_titles=other_titles,
             connect=connect,
             add_time=add_time,
+            user_id=user_id,
             coord_id=coord_id,
             status='new',
             winter=winter,

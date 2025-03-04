@@ -1,8 +1,12 @@
 from datetime import datetime
+import re
 
 from fastapi import HTTPException
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.params import Depends
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 
 from pydantic import BaseModel, Field, conlist, field_validator, EmailStr
 import pendulum
@@ -18,7 +22,7 @@ app = FastAPI(
     version='1.0.0',
     docs_url='/swagger',
     redoc_url='/api-docs',
-    swagger_ui_parameters={'efaultModelsExpandDepth': 1}
+    swagger_ui_parameters={'defaultModelsExpandDepth': 1}
 
 )
 
@@ -28,6 +32,14 @@ app = FastAPI(
 async def root():
     return {'message': 'API работает!'}
 
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(exc):
+    return JSONResponse(
+        status_code=422,
+        content=jsonable_encoder({
+            'detail': 'Ошибка валидации: неверно введенные данные',
+            'errors': exc.errors()
+        }))
 
 class SubmitData(BaseModel):
     """Модель данных для отправки информации"""
@@ -58,16 +70,17 @@ class SubmitData(BaseModel):
     email: EmailStr
 
     @field_validator('add_time', mode='before')
-    def parse_add_time(cls, value):
-        """Валидатор для обработки формата даты (ISO 8601)"""
-        if isinstance(value, str):
-            try:
-                parsed_time = pendulum.parse(value)  # Автодобавление акуталнього времени
-                return parsed_time
-            except (pendulum.parsing.exceptions.ParserError, ValueError):
-                raise ValueError('Ошибка в формате даты: ожидается ISO 8601 (YYYY-MM-DDTHH:MM:SSZ)')
-        return value
+    def validate_add_time(cls, value):
+        """Строгая валидация формата даты перед конвертацией"""
+        iso_8601_regex = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z?$'
 
+        if not isinstance(value, str) or not re.match(iso_8601_regex, value):
+            raise ValueError('Ошибка: add_time должен быть в формате ISO 8601 (YYYY-MM-DDTHH:MM:SSZ)')
+
+        try:
+            return pendulum.parse(value)  # Корректно парсим дату
+        except Exception:
+            raise ValueError('Ошибка парсинга даты: неверный формат ISO 8601')
 
 def get_db():
     """Создание сесии БД для запроса и ее закрытие после использования"""
@@ -92,6 +105,7 @@ def get_db():
                       }
                   }
               },
+              422: {'description': 'Ошибка валидации: неверно введенные данные'},
               500: {'description': 'Ошибка сервера'}
           })
 async def submit_data(data: SubmitData, db: Database = Depends(get_db)):
@@ -132,35 +146,35 @@ async def submit_data(data: SubmitData, db: Database = Depends(get_db)):
          description='Возвращает данные о перевале по ID',
          responses={
              200: {
-                 "description": "Информация о перевале найдена",
-                 "content": {
-                     "application/json": {
-                         "example": {
-                             "id": 1,
-                             "author": "user@example.com",
-                             "beautytitle": "Перевал Дятлова",
-                             "title": "Горный перевал",
-                             "other_titles": "Дятловский; Северный проход",
-                             "connect": "Связывает две долины",
-                             "add_time": "2024-03-01T12:00:00Z",
-                             "status": "new",
-                             "coords": {
-                                 "latitude": 61.7581,
-                                 "longitude": 59.4506,
-                                 "height": 1079
+                 'description': 'Информация о перевале найдена',
+                 'content': {
+                     'application/json': {
+                         'example': {
+                             'id': 1,
+                             'author': 'user@example.com',
+                             'beautytitle': 'Перевал Дятлова',
+                             'title': 'Горный перевал',
+                             'other_titles': 'Дятловский; Северный проход',
+                             'connect': 'Связывает две долины',
+                             'add_time': '2024-03-01T12:00:00Z',
+                             'status': 'new',
+                             'coords': {
+                                 'latitude': 61.7581,
+                                 'longitude': 59.4506,
+                                 'height': 1079
                              },
-                             "level": {
-                                 "winter": "2А",
-                                 "summer": "1Б",
-                                 "autumn": "1Б",
-                                 "spring": "2А"
+                             'level': {
+                                 'winter': '2А',
+                                 'summer': '1Б',
+                                 'autumn': '1Б',
+                                 'spring': '2А'
                              }
                          }
                      }
                  }
              },
-             404: {"description": "Перевал не найден"},
-             500: {"description": "Ошибка сервера"}
+             404: {'description': 'Перевал не найден'},
+             500: {'description': 'Ошибка сервера'}
          })
 async def get_pereval(pereval_id: int, db: Database = Depends(get_db)):
     """Обработчик GET-запроса для получения информации о перевале по id"""
@@ -184,9 +198,9 @@ async def get_pereval(pereval_id: int, db: Database = Depends(get_db)):
             'add_time': pereval.add_time,
             'status': pereval.status,
             'coords': {
-                "latitude": coords.latitude,
-                "longitude": coords.longitude,
-                "height": coords.height
+                'latitude': coords.latitude,
+                'longitude': coords.longitude,
+                'height': coords.height
             },
             'level': {
                 'winter': pereval.winter,
@@ -244,33 +258,33 @@ async def update_pereval(id: int, data: SubmitData, db: Database = Depends(get_d
          description='Возвращает список перевалов, добавленных пользователем по его email',
 responses={
              200: {
-                 "description": "Перевалы пользователя найдены",
-                 "content": {
-                     "application/json": {
-                         "example": {
-                             "email": "user@example.com",
-                             "perevals": [
+                 'description': 'Перевалы пользователя найдены',
+                 'content': {
+                     'application/json': {
+                         'example': {
+                             'email': 'user@example.com',
+                             'perevals': [
                                  {
-                                     "id": 1,
-                                    "title": "Перевал Дятлова",
-                                     "beautytitle": "Перевал на Урале",
-                                     "status": "new",
-                                     "add_time": "2024-03-01T12:00:00Z"
+                                     'id': 1,
+                                     'title': 'Перевал Дятлова',
+                                     'beautytitle': 'Перевал на Урале',
+                                     'status': 'new',
+                                     'add_time': '2024-03-01T12:00:00Z'
                                  },
                                  {
-                                     "id": 2,
-                                     "title": "Горный хребет",
-                                     "beautytitle": "Высокий перевал",
-                                     "status": "pending",
-                                     "add_time": "2024-03-02T15:30:00Z"
+                                     'id': 2,
+                                     'title': 'Горный хребет',
+                                     'beautytitle': 'Высокий перевал',
+                                     'status': 'pending',
+                                     'add_time': '2024-03-02T15:30:00Z'
                                  }
                              ]
                          }
                      }
                  }
              },
-             404: {"description": "Пользователь с таким email не найден"},
-             500: {"description": "Ошибка сервера"}
+             404: {'description': 'Пользователь с таким email не найден'},
+             500: {'description': 'Ошибка сервера'}
          })
 async def get_perevals_by_email(user__email: str, db: Database = Depends(get_db)):
     """Просмотр всех перевалов, опубликованных пользователем с определенным email-ом"""

@@ -11,7 +11,7 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field, conlist, field_validator, EmailStr
 import pendulum
 
-from .database import Database, PerevalAdded, Coords, User
+from database import Database, PerevalAdded, Coords, User
 
 
 # Инизиализация FastAPI с настройками документации

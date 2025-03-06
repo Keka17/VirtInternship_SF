@@ -13,8 +13,6 @@ import pendulum
 
 from database import Database, PerevalAdded, Coords, User
 
-from mangum import Mangum
-
 
 # Инизиализация FastAPI с настройками документации
 app = FastAPI(
@@ -34,8 +32,6 @@ app = FastAPI(
 async def root():
     return {'message': 'API работает!'}
 
-# Оборачиваем приложение для Vercel
-handler = Mangum(app)
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(exc):

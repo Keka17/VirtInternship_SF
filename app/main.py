@@ -128,7 +128,7 @@ class Database:
 
         # Если add_time не передано, используем текущее время
         if add_time is None:
-            add_time = pendulum.now()  # Текущее время в формате ISO 8601
+            add_time = pendulum.now('UTC')  # Текущее время в формате ISO 8601
 
         # Преобразуем add_time в строку, если это объект datetime
         if isinstance(add_time, datetime):
@@ -230,7 +230,7 @@ class SubmitData(BaseModel):
             raise ValueError('Ошибка: add_time должен быть в формате ISO 8601 (YYYY-MM-DDTHH:MM:SSZ)')
 
         try:
-            return pendulum.parse(value)  # Корректно парсим дату
+            return pendulum.from_format(value, 'YYYY-MM-DDTHH:mm:ss', tz='UTC')  # Корректно парсим дату
         except Exception:
             raise ValueError('Ошибка парсинга даты: неверный формат ISO 8601')
 def get_db():

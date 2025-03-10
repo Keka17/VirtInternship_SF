@@ -14,7 +14,8 @@ from pydantic import BaseModel, Field, conlist, field_validator, EmailStr
 # from pendulum import datetime
 from datetime import datetime, timezone
 
-from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey, Float
+from sqlalchemy import (create_engine, Column, Integer, String,
+                        Text, ForeignKey, Float, DateTime)
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
 from dotenv import load_dotenv
@@ -77,7 +78,7 @@ class PerevalAdded(Base):
     title = Column(String(200))
     other_titles = Column(String(200))
     connect = Column(Text, nullable=True)
-    add_time = Column(String, nullable=False)
+    add_time = Column(DateTime, nullable=False, default=datetime.utcnow)
     coord_id = Column(Integer, ForeignKey('coords.id'), nullable=False)
     status = Column(String, default='new')
 
@@ -224,7 +225,7 @@ class SubmitData(BaseModel):
     import re
 
     @field_validator('add_time', mode='before')
-    def validate_add_time(cls, value):
+    def validate_add_time(cls, value) -> datetime:
         """Строгая валидация формата даты перед конвертацией"""
         if isinstance(value, datetime):
             return value  # Если это уже datetime, возвращаем как есть

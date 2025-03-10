@@ -10,8 +10,9 @@ from fastapi.encoders import jsonable_encoder
 
 from pydantic import BaseModel, Field, conlist, field_validator, EmailStr
 
-import pendulum
-from pendulum import datetime
+# import pendulum
+# from pendulum import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey, Float
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
@@ -128,7 +129,7 @@ class Database:
 
         # Если add_time не передано, используем текущее время
         if add_time is None:
-            add_time = pendulum.now()  # Текущее время в формате ISO 8601
+            add_time = datetime.utcnow().replace(tzinfo=timezone.utc)  # Текущее время в формате ISO 8601
 
         # Преобразуем add_time в строку, если это объект datetime
         if isinstance(add_time, datetime):
@@ -200,7 +201,8 @@ class SubmitData(BaseModel):
     other_titles: conlist(str, min_length=0, max_length=10) = Field(default=[],
                                 description='Список альтернативных названий')
     connect: str = Field(default='', description="Дополнительные сведения о связи перевала")
-    add_time: datetime = Field(default_factory=pendulum.now, description='Дата и время добавления данных в UTC')
+    add_time: datetime = Field(default_factory=lambda: datetime.utcnow().replace(tzinfo=timezone.utc),
+                               description='Дата и время добавления данных в UTC')
     latitude: float = Field(..., ge=-90, le=90, description='Широта в градусах')
     longitude: float = Field(..., ge=-180, le=180, description='Долгота в градусах')
     height: int = Field(..., ge=0, description='Высота в метрах над уровнем моря')
@@ -218,6 +220,9 @@ class SubmitData(BaseModel):
     phone: str = Field(..., min_length=10, max_length=12, description='Номер телефона')
     email: EmailStr
 
+    from datetime import datetime, timezone
+    import re
+
     @field_validator('add_time', mode='before')
     def validate_add_time(cls, value):
         """Строгая валидация формата даты перед конвертацией"""
@@ -230,7 +235,8 @@ class SubmitData(BaseModel):
             raise ValueError('Ошибка: add_time должен быть в формате ISO 8601 (YYYY-MM-DDTHH:MM:SSZ)')
 
         try:
-            return pendulum.from_format(value, 'YYYY-MM-DDTHH:mm:ss', tz=pendulum.timezone('UTC'))  # Корректно парсим дату
+            parsed_time = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
+            return parsed_time.replace(tzinfo=timezone.utc)  # Добавляем UTC
         except Exception:
             raise ValueError('Ошибка парсинга даты: неверный формат ISO 8601')
 

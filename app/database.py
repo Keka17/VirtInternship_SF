@@ -10,8 +10,7 @@ from dotenv import load_dotenv
 """ORM - для представления таблиц в виде классов,
 а с БД работать через объекты"""
 
-# Загрузка переменных окружения из .env
-#load_dotenv() 
+load_dotenv()  # Загрузка переменных окружения из .env
 
 # Получение данных из переменных окружения
 DB_HOST = os.getenv('FSTR_DB_HOST', 'localhost')

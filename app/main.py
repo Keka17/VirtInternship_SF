@@ -1,5 +1,5 @@
-from datetime import datetime
 import re
+import os
 
 from fastapi import HTTPException
 from fastapi import FastAPI
@@ -10,11 +10,9 @@ from fastapi.encoders import jsonable_encoder
 
 from pydantic import BaseModel, Field, conlist, field_validator, EmailStr
 
-
-import os
-
 import pendulum
 from pendulum import datetime
+
 from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey, Float
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
@@ -180,7 +178,7 @@ async def root():
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request,exc):
+async def validation_exception_handler(request, exc):
     return JSONResponse(
         status_code=422,
         content=jsonable_encoder({

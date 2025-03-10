@@ -130,6 +130,10 @@ class Database:
         if add_time is None:
             add_time = pendulum.now()  # Текущее время в формате ISO 8601
 
+        # Преобразуем add_time в строку, если это объект datetime
+        if isinstance(add_time, datetime):
+            add_time = add_time.isoformat()
+
         # Добавляем координаты
         coord_id = self.add_coords(latitude, longitude, height)
 
@@ -186,6 +190,8 @@ async def validation_exception_handler(request, exc):
             'errors': exc.errors()
         }))
 
+from pendulum import DateTime
+
 class SubmitData(BaseModel):
     """Модель данных для отправки информации"""
     beautytitle: str = Field(..., min_length=1,
@@ -195,8 +201,7 @@ class SubmitData(BaseModel):
     other_titles: conlist(str, min_length=0, max_length=10) = Field(default=[],
                                 description='Список альтернативных названий')
     connect: str = Field(default='', description="Дополнительные сведения о связи перевала")
-    add_time: datetime = Field(default_factory=pendulum.now,
-                               description='Дата и время добавления данных в UTC')
+    add_time: DateTime = Field(default_factory=pendulum.now, description='Дата и время добавления данных в UTC')
     latitude: float = Field(..., ge=-90, le=90, description='Широта в градусах')
     longitude: float = Field(..., ge=-180, le=180, description='Долгота в градусах')
     height: int = Field(..., ge=0, description='Высота в метрах над уровнем моря')
@@ -217,7 +222,10 @@ class SubmitData(BaseModel):
     @field_validator('add_time', mode='before')
     def validate_add_time(cls, value):
         """Строгая валидация формата даты перед конвертацией"""
-        iso_8601_regex = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z?$'
+        if isinstance(value, datetime):
+            return value  # Если это уже datetime, возвращаем как есть
+
+        iso_8601_regex = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z?$'
 
         if not isinstance(value, str) or not re.match(iso_8601_regex, value):
             raise ValueError('Ошибка: add_time должен быть в формате ISO 8601 (YYYY-MM-DDTHH:MM:SSZ)')
@@ -226,7 +234,6 @@ class SubmitData(BaseModel):
             return pendulum.parse(value)  # Корректно парсим дату
         except Exception:
             raise ValueError('Ошибка парсинга даты: неверный формат ISO 8601')
-
 def get_db():
     """Создание сесии БД для запроса и ее закрытие после использования"""
     db = Database()

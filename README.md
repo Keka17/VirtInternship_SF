@@ -75,3 +75,6 @@ API возвращает понятные ошибки:
 403 Forbidden — Редактирование невозможно
 500 Internal Server Error — Ошибка сервера
 
+upd: Деплой на render через ветку render - объединила database.py и main.py из-за возникающего конфлита ModuleNotFound. 
+Для проверки API необходимо перейти по ссылке https://virtinternship-sf-6wau.onrender.com/swagger или https://virtinternship-sf-6wau.onrender.com/api-docs
+

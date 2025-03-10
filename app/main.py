@@ -190,7 +190,6 @@ async def validation_exception_handler(request, exc):
             'errors': exc.errors()
         }))
 
-from pendulum import DateTime
 
 class SubmitData(BaseModel):
     """Модель данных для отправки информации"""
@@ -201,7 +200,7 @@ class SubmitData(BaseModel):
     other_titles: conlist(str, min_length=0, max_length=10) = Field(default=[],
                                 description='Список альтернативных названий')
     connect: str = Field(default='', description="Дополнительные сведения о связи перевала")
-    add_time: DateTime = Field(default_factory=pendulum.now, description='Дата и время добавления данных в UTC')
+    add_time: datetime = Field(default_factory=pendulum.now, description='Дата и время добавления данных в UTC')
     latitude: float = Field(..., ge=-90, le=90, description='Широта в градусах')
     longitude: float = Field(..., ge=-180, le=180, description='Долгота в градусах')
     height: int = Field(..., ge=0, description='Высота в метрах над уровнем моря')

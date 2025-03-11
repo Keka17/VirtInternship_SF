@@ -61,7 +61,7 @@ python-dotenv — для работы с переменными окружени
 Для связи: vihalfblood@gmail.com
 
 upd: Работоспособность можно проверить тестами, для этого в терминале введите 
-cd ..
+cd app
 PYTHONPATH=$(pwd) pytest -v tests/test_database.py или PYTHONPATH=$(pwd) pytest -v tests/test_api.py
 
 upd: Документация с помощью Swagger UI

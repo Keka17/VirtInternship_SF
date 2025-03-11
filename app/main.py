@@ -10,9 +10,9 @@ from fastapi.encoders import jsonable_encoder
 
 from pydantic import BaseModel, Field, conlist, field_validator, EmailStr
 
-# import pendulum
-# from pendulum import datetime
-from datetime import datetime, timezone
+import pendulum
+from pendulum import DateTime
+
 
 from sqlalchemy import (create_engine, Column, Integer, String,
                         Text, ForeignKey, Float, DateTime)
@@ -78,7 +78,7 @@ class PerevalAdded(Base):
     title = Column(String(200))
     other_titles = Column(String(200))
     connect = Column(Text, nullable=True)
-    add_time = Column(DateTime, nullable=False, default=datetime.utcnow)
+    add_time = Column(String, nullable=False, default=pendulum.now('UTC').to_iso8601_string())
     coord_id = Column(Integer, ForeignKey('coords.id'), nullable=False)
     status = Column(String, default='new')
 
@@ -130,11 +130,11 @@ class Database:
 
         # Если add_time не передано, используем текущее время
         if add_time is None:
-            add_time = datetime.utcnow().replace(tzinfo=timezone.utc)  # Текущее время в формате ISO 8601
+            add_time = pendulum.now('UTC').to_iso8601_string()  # Текущее время в формате ISO 8601
 
-        # Преобразуем add_time в строку, если это объект datetime
-        if isinstance(add_time, datetime):
-            add_time = add_time.isoformat()
+        # Преобразуем add_time в строку, если это объект DateTime
+        if isinstance(add_time, DateTime):
+            add_time = add_time.to_iso8601_string()
 
         # Добавляем координаты
         coord_id = self.add_coords(latitude, longitude, height)
@@ -202,7 +202,7 @@ class SubmitData(BaseModel):
     other_titles: conlist(str, min_length=0, max_length=10) = Field(default=[],
                                 description='Список альтернативных названий')
     connect: str = Field(default='', description="Дополнительные сведения о связи перевала")
-    add_time: datetime = Field(default_factory=lambda: datetime.utcnow().replace(tzinfo=timezone.utc),
+    add_time: str = Field(default_factory=lambda: pendulum.now('UTC').to_iso8601_string(),
                                description='Дата и время добавления данных в UTC')
     latitude: float = Field(..., ge=-90, le=90, description='Широта в градусах')
     longitude: float = Field(..., ge=-180, le=180, description='Долгота в градусах')
@@ -221,25 +221,19 @@ class SubmitData(BaseModel):
     phone: str = Field(..., min_length=10, max_length=12, description='Номер телефона')
     email: EmailStr
 
-    from datetime import datetime, timezone
-    import re
-
     @field_validator('add_time', mode='before')
-    def validate_add_time(cls, value) -> datetime:
+    def validate_add_time(cls, value) -> str:
         """Строгая валидация формата даты перед конвертацией"""
-        if isinstance(value, datetime):
-            return value  # Если это уже datetime, возвращаем как есть
+        if isinstance(value, str):
+            iso_8601_regex = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z?$'
+            if not re.match(iso_8601_regex, value):
+                raise ValueError('Ошибка: add_time должен быть в формате ISO 8601 (YYYY-MM-DDTHH:MM:SSZ)')
+            return value  # Возвращаем строку, если она соответствует формату
 
-        iso_8601_regex = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z?$'
+        if isinstance(value, DateTime):
+            return value.to_iso8601_string()  # Преобразуем DateTime в строку
 
-        if not isinstance(value, str) or not re.match(iso_8601_regex, value):
-            raise ValueError('Ошибка: add_time должен быть в формате ISO 8601 (YYYY-MM-DDTHH:MM:SSZ)')
-
-        try:
-            parsed_time = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
-            return parsed_time.replace(tzinfo=timezone.utc)  # Добавляем UTC
-        except Exception:
-            raise ValueError('Ошибка парсинга даты: неверный формат ISO 8601')
+        raise ValueError('Ошибка: add_time должен быть строкой в формате ISO 8601 или объектом DateTime')
 
 
 def get_db():
@@ -285,7 +279,7 @@ async def submit_data(data: SubmitData, db: Database = Depends(get_db)):
             title=data.title,
             other_titles='; '.join(data.other_titles),
             connect=data.connect,
-            add_time=data.add_time.isoformat(),
+            add_time=data.add_time,
             user_id=user_id,  # Передаем ID пользователя
             latitude=data.latitude,
             longitude=data.longitude,
@@ -395,7 +389,7 @@ async def update_pereval(id: int, data: SubmitData, db: Database = Depends(get_d
         pereval.title = data.title
         pereval.other_titles = '; '.join(data.other_titles)
         pereval.connect = data.connect
-        pereval.add_time = data.add_time.isoformat()
+        pereval.add_time = data.add_time,
         pereval.winter = data.winter
         pereval.summer = data.summer
         pereval.autumn = data.autumn

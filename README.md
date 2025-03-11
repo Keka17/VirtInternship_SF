@@ -51,7 +51,7 @@ uvicorn main:app --reload
 • Проверка работы
 Перейдите по ссылке http://127.0.0.1:8000/swagger для отправки тестовых запросов
 
-Основные установленны зависимости: 
+Основные установленные зависимости: 
 fastapi — фреймворк для создания API
 uvicorn — сервер для запуска FastAPI
 sqlalchemy — ORM для работы с базой данных
@@ -75,8 +75,8 @@ API возвращает понятные ошибки:
 403 Forbidden — Редактирование невозможно
 500 Internal Server Error — Ошибка сервера
 
-upd: Деплой на Render
-Изменения в коде: Объединила файлы database.py и main.py для устранения конфликта ModuleNotFound.
+upd: Деплой на Render 
+Изменения в коде: Объединила файлы database.py и main.py для устранения конфликта ModuleNotFound (ветка render).
 Для проверки работы API перейдите по одной из следующих ссылок: https://virtinternship-sf-6wau.onrender.com/swagger или  https://virtinternship-sf-6wau.onrender.com/api-docs
 Сервер подключен к базе данных в Supabase.
 Работоспособность API можно проверить для перевалов с id от 1, 3, 4, 5, 6.

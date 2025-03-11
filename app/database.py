@@ -1,7 +1,8 @@
 import os
 
 import pendulum
-from pendulum import datetime
+from pendulum import DateTime
+
 from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey, Float
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
@@ -65,7 +66,7 @@ class PerevalAdded(Base):
     title = Column(String(200))
     other_titles = Column(String(200))
     connect = Column(Text, nullable=True)
-    add_time = Column(String, nullable=False)
+    add_time = Column(String, nullable=False, default=pendulum.now('UTC').to_iso8601_string())
     coord_id = Column(Integer, ForeignKey('coords.id'), nullable=False)
     status = Column(String, default='new')
 
@@ -117,8 +118,11 @@ class Database:
 
         # Если add_time не передано, используем текущее время
         if add_time is None:
-            add_time = pendulum.now()  # Текущее время в формате ISO 8601
+            add_time = pendulum.now('UTC').to_iso8601_string()  # Текущее время в формате ISO 8601
 
+        # Преобразуем add_time в строку, если это объект DateTime
+        if isinstance(add_time, DateTime):
+            add_time = add_time.to_iso8601_string()
         # Добавляем координаты
         coord_id = self.add_coords(latitude, longitude, height)
 

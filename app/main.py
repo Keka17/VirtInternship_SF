@@ -1,4 +1,3 @@
-from datetime import datetime
 import re
 
 from fastapi import HTTPException
@@ -161,7 +160,7 @@ async def submit_data(data: SubmitData, db: Database = Depends(get_db)):
                              'beautytitle': 'Перевал Дятлова',
                              'title': 'Горный перевал',
                              'other_titles': 'Дятловский; Северный проход',
-                             'connect': 'Связывает две долины',
+                             'connect': 'Нет связи',
                              'add_time': '2024-03-01T12:00:00Z',
                              'status': 'new',
                              'coords': {

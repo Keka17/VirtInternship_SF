@@ -32,9 +32,11 @@ a) Создание базы данных
 psql -U postgres -c "CREATE DATABASE pereval;"
 
 b) Импорт данных из файла .sql
-В репозитории находится файл pereval_db.sql, который содержит дамп базы данных. Чтобы импортировать данные, выполните команду:
-psql -U postgres -d pereval -f pereval_db.sql
+В репозитории находится файл pereval_dump.sql, который содержит дамп базы данных. Чтобы импортировать данные, выполните команду:
+psql -U postgres -d pereval -f pereval_dump.sql
 Если вы используете другую базу данных, измените параметры подключения в файле .env.
+
+Альтернативный способ с использованием pgAdmin4: Tools -> Query Tool-> в открывшемся окне ввести содержимое файла pereval_dump.sql.
 
 c) Настройка переменных окружения
 Создайте файл .env в корневой папке проекта и добавьте в него данные для подключения к PostgreSQL:
@@ -51,7 +53,7 @@ uvicorn main:app --reload
 • Проверка работы
 Перейдите по ссылке http://127.0.0.1:8000/swagger для отправки тестовых запросов
 
-Основные установленны зависимости: 
+Основные установленные зависимости: 
 fastapi — фреймворк для создания API
 uvicorn — сервер для запуска FastAPI
 sqlalchemy — ORM для работы с базой данных
@@ -61,7 +63,7 @@ python-dotenv — для работы с переменными окружени
 Для связи: vihalfblood@gmail.com
 
 upd: Работоспособность можно проверить тестами, для этого в терминале введите 
-cd ..
+cd app
 PYTHONPATH=$(pwd) pytest -v tests/test_database.py или PYTHONPATH=$(pwd) pytest -v tests/test_api.py
 
 upd: Документация с помощью Swagger UI
@@ -74,4 +76,10 @@ API возвращает понятные ошибки:
 404 Not Found — Перевал/пользователь не найден
 403 Forbidden — Редактирование невозможно
 500 Internal Server Error — Ошибка сервера
+
+upd: Деплой на Render 
+Изменения в коде: Объединила файлы database.py и main.py для устранения конфликта ModuleNotFound (ветка render).
+Для проверки работы API перейдите по одной из следующих ссылок: https://virtinternship-sf-6wau.onrender.com/swagger или  https://virtinternship-sf-6wau.onrender.com/api-docs
+Сервер подключен к базе данных в Supabase.
+Работоспособность API можно проверить для перевалов с id от 1, 3, 4, 5, 6.
 

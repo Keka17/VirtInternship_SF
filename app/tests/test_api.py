@@ -34,7 +34,7 @@ def test_submit_data():
 
 def test_get_pereval():
     """Тест на получение данных о перевале"""
-    pereval_id = 16
+    pereval_id = 39
     response = client.get(f'/submitData/{pereval_id}')
 
     if response.status_code == 404:

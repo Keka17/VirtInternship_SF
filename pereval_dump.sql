@@ -272,121 +272,126 @@ ALTER TABLE ONLY public."user" ALTER COLUMN id SET DEFAULT nextval('public.user_
 -- Data for Name: coords; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.coords (id, latitude, longitude, height) FROM stdin;
-1	45.3842	7.1525	1200
-2	42.1234	74.5678	3000
-3	61.7542	59.1269	1079
-4	45.6789	120.5432	3100
-\.
+INSERT INTO public.coords (id, latitude, longitude, height) VALUES
+(42, 43.355, 42.439, 5642),
+(43, 47.8901, 91.2345, 3120),
+(44, -45.678, 60.123, 3200),
+(45, 27.9881, 86.925, 7906),
+(46, 37.7749, -80.4194, 1200),
+(47, 65.123, -20.456, 1500);
 
 
 --
 -- Data for Name: images; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.images (id, title) FROM stdin;
-1	Седловина
-2	Подъем
-\.
+INSERT INTO public.images (id, title) VALUES
+(1, 'Седловина'),
+(2, 'Подъем');
 
 
 --
 -- Data for Name: pereval_added; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.pereval_added (id, date_added, raw_data, status, user_id, beautytitle, title, other_titles, connect, add_time, coord_id, winter, summer, autumn, spring) FROM stdin;
-3	\N	\N	new	\N	Мглистые горы	Тестовая запись	Еще одна запись	Связь	2025-02-20 00:00:00	2	\N	\N	\N	\N
-4	\N	\N	new	\N	перевал Дятлова	Дятлов	Dyatlov Pass; Перевал Холатчхаль	Связь отсутствует	2025-02-21 12:00:00	3	3Б			
-5	\N	\N	accepted	2	Перевал Драконьего Клыка	Перевал Драконьего Клыка	Драконий Путь; Клык Дракона	Соединяет земли эльфов с королевством драконов	2025-02-21 12:00:00	4	A1	B2	C1	A2
-1	2022-02-21 14:14:00.720184	{"beautyTitle": "пер. "}	new	1	пер. 	Пхия	Триев		2021-09-22 13:18:13	1		1А	1А	
-\.
+INSERT INTO public.pereval_added (
+    id, date_added, raw_data, status, user_id, beautytitle, title, other_titles, connect, add_time, coord_id, winter, summer, autumn, spring
+) VALUES
+    (41, NULL, NULL, 'new', 12, 'Перевал Казад-Дум', 'Морийский перевал', 'Врата Мории; Перевал Друэдайн', 'Связи нет', '2024-01-15 08:30:45.123', 44, '2A', '2A', '2A', '2A'),
+    (43, NULL, NULL, 'accepted', 13, 'Перевал Нью-Ривер', 'Нью-Ривер', 'Аппалачский перевал, Голубой хребет', 'Хорошая связь', '2023-11-22 14:20:10.456', 46, '2А', '1Б', '1Б', '2А'),
+    (42, NULL, NULL, 'new', 2, 'Южное седло Эвереста', 'Перевал Эверест', 'Сагарматха; Джомолунгма', 'Нет связи', '2024-03-05 09:45:30.789', 45, '3А', '2Б', '2А', '2Б'),
+    (39, NULL, NULL, 'new', 1, 'Гора Эльбрус', 'Эльбрус', 'Минги-Тау; Гора двух вершин', 'Отличная связь', '2023-12-31 23:59:59.999', 42, '3Б', '2А', '2Б', '3А'),
+    (44, NULL, NULL, 'pending', 14, 'Перевал Ледяного Ветра', 'Ледяной перевал', 'Врата Севера, Дорога за Стену', 'Слабая связь', '2024-02-14 12:00:00', 47, '3Б', '2Б', '2А', '3А');
 
 
 --
 -- Data for Name: pereval_areas; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.pereval_areas (id, id_parent, title) FROM stdin;
-0	0	Планета Земля
-1	0	Памиро-Алай
-65	0	Алтай
-66	65	Северо-Чуйский хребет
-88	65	Южно-Чуйский хребет
-92	65	Катунский хребет
-105	1	Фанские горы
-106	1	Гиссарский хребет (участок западнее перевала Анзоб)
-131	1	Матчинский горный узел
-133	1	Горный узел Такали, Туркестанский хребет
-137	1	Высокий Алай
-147	1	Кичик-Алай и Восточный Алай
-367	375	Аладаглар
-375	0	Тавр
-384	0	Саяны
-386	65	Хребет Листвяга
-387	65	Ивановский хребет
-388	65	Массив Мунгун-Тайга
-389	65	Хребет Цаган-Шибэту
-390	65	Хребет Чихачева (Сайлюгем)
-391	65	Шапшальский хребет
-392	65	Хребет Южный Алтай
-393	65	Хребет Монгольский Алтай
-398	384	Западный Саян
-399	384	Восточный Саян
-402	384	Кузнецкий Алатау
-459	65	Курайский хребет
-\.
-
+INSERT INTO public.pereval_areas (id, id_parent, title) VALUES
+(0, 0, 'Планета Земля'),
+(1, 0, 'Памиро-Алай'),
+(65, 0, 'Алтай'),
+(66, 65, 'Северо-Чуйский хребет'),
+(88, 65, 'Южно-Чуйский хребет'),
+(92, 65, 'Катунский хребет'),
+(105, 1, 'Фанские горы'),
+(106, 1, 'Гиссарский хребет (участок западнее перевала Анзоб)'),
+(131, 1, 'Матчинский горный узел'),
+(133, 1, 'Горный узел Такали, Туркестанский хребет'),
+(137, 1, 'Высокий Алай'),
+(147, 1, 'Кичик-Алай и Восточный Алай'),
+(367, 375, 'Аладаглар'),
+(375, 0, 'Тавр'),
+(384, 0, 'Саяны'),
+(386, 65, 'Хребет Листвяга'),
+(387, 65, 'Ивановский хребет'),
+(388, 65, 'Массив Мунгун-Тайга'),
+(389, 65, 'Хребет Цаган-Шибэту'),
+(390, 65, 'Хребет Чихачева (Сайлюгем)'),
+(391, 65, 'Шапшальский хребет'),
+(392, 65, 'Хребет Южный Алтай'),
+(393, 65, 'Хребет Монгольский Алтай'),
+(398, 384, 'Западный Саян'),
+(399, 384, 'Восточный Саян'),
+(402, 384, 'Кузнецкий Алатау'),
+(459, 65, 'Курайский хребет');
 
 --
 -- Data for Name: pereval_images; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.pereval_images (pereval_id, image_id) FROM stdin;
-\.
+--INSERT INTO public.pereval_images (pereval_id, image_id) VALUES
 
 
 --
 -- Data for Name: spr_activities_types; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.spr_activities_types (id, title) FROM stdin;
-1	пешком
-2	лыжи
-3	катамаран
-4	байдарка
-5	плот
-6	сплав
-7	велосипед
-8	автомобиль
-9	мотоцикл
-10	парус
-11	верхом
-\.
+INSERT INTO public.spr_activities_types (id, title) VALUES
+(1, 'пешком'),
+(2, 'лыжи'),
+(3, 'катамаран'),
+(4, 'байдарка'),
+(5, 'плот'),
+(6, 'сплав'),
+(7, 'велосипед'),
+(8, 'автомобиль'),
+(9, 'мотоцикл'),
+(10, 'парус'),
+(11, 'верхом');
 
 
 --
 -- Data for Name: user; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public."user" (id, fam, name, otc, phone, email) FROM stdin;
-\.
+--INSERT INTO public."user" (id, fam, name, otc, phone, email) VALUES
+
 
 
 --
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.users (id, fam, name, otc, phone, email) FROM stdin;
-1	Пупкин	Василий	Иванович	79031234567	user@email.tld
-2	Скайуокер	Люк	Энакинович	+9777777	maytheForcebewithU@email.gal
-\.
+INSERT INTO public.users (id, fam, name, otc, phone, email) VALUES
+(1, 'Пупкин', 'Василий', 'Иванович', '79031234567', 'user@email.tld'),
+(2, 'Скайуокер', 'Люк', 'Энакинович', '+9777777', 'maytheForcebewithU@email.gal'),
+(3, 'Иванов', 'Иван', 'Иванович', '89991234567', 'ivanov@example.com'),
+(4, 'Сидоров', 'Петр', 'Иванович', '9999999999', 'sidorov@example.com'),
+(7, 'Петров', 'Петр', 'Петрович', '9999999990', 'petrov@example.com'),
+(9, 'Старк', 'Эддард', 'Рикардович', '79123456789', 'eddard.stark@winterfell.com'),
+(11, 'Тестовый', 'Тестим', 'Тестович', '12345678912', 'testim@gmail.com'),
+(12, 'Торбинс', 'Фродо', 'Бэггинс', '89997776655', 'frodo@shire.com'),
+(13, 'Смит', 'Джон', 'Майкл', '89998887766', 'smith@appalachian.com'),
+(14, 'Сноу', 'Джон', 'Эддардович', '89997776655', 'jon.snow@nightwatch.com');
 
 
 --
 -- Name: coords_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.coords_id_seq', 4, true);
+SELECT pg_catalog.setval('public.coords_id_seq', 47, true);
 
 
 --
@@ -414,14 +419,14 @@ SELECT pg_catalog.setval('public.pereval_areas_id_seq', 1, false);
 -- Name: pereval_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.pereval_id_seq', 5, true);
+SELECT pg_catalog.setval('public.pereval_id_seq', 44, true);
 
 
 --
 -- Name: pereval_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.pereval_user_id_seq', 2, true);
+SELECT pg_catalog.setval('public.pereval_user_id_seq', 14, true);
 
 
 --
